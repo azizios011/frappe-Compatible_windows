@@ -13,6 +13,7 @@ import frappe
 from frappe.desk.doctype.desktop_icon.desktop_icon import import_desktop_icon_fixtures
 from frappe.modules.import_file import import_file_by_path
 from frappe.modules.patch_handler import _patch_mode
+from frappe.modules.utils import get_custom_module_import_map
 from frappe.utils import update_progress_bar
 
 IMPORTABLE_DOCTYPES = [
@@ -131,8 +132,10 @@ def sync_for(app_name, force=0, reset_permissions=False):
 			if file not in files:
 				files.append(file)
 
+	custom_module_import_map = get_custom_module_import_map(app_name)
 	for module_name in frappe.local.app_modules.get(app_name) or []:
-		folder = os.path.dirname(frappe.get_module(app_name + "." + module_name).__file__)
+		import_suffix = custom_module_import_map.get(module_name, module_name)
+		folder = os.path.dirname(frappe.get_module(f"{app_name}.{import_suffix}").__file__)
 		files = get_doc_files(files=files, start_path=folder)
 
 	# The same walk again, rooted at the app, for the few doctypes an app may ship outside any
