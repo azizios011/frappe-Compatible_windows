@@ -15,7 +15,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint, cstr, get_file_items, get_module, now_datetime
 from frappe.utils.caching import site_cache
-from frappe.utils.data import scrub
+from frappe.utils.data import scrub, unscrub
 
 if TYPE_CHECKING:
 	from types import ModuleType
@@ -323,9 +323,11 @@ def load_doctype_module(doctype, module=None, prefix="", suffix=""):
 
 def get_module_name(doctype: str, module: str, prefix: str = "", suffix: str = "", app: str | None = None):
 	app = scrub(app or get_module_app(module))
-	module = scrub(module)
+	scrubbed_module = scrub(module)
 	doctype = scrub(doctype)
-	return f"{app}.{module}.doctype.{doctype}.{prefix}{doctype}{suffix}"
+	custom_module_import_map = get_custom_module_import_map(app)
+	module_path = custom_module_import_map.get(scrubbed_module, scrubbed_module)
+	return f"{app}.{module_path}.doctype.{doctype}.{prefix}{doctype}{suffix}"
 
 
 def get_module_app(module: str) -> str:
@@ -465,7 +467,10 @@ def delete_app_level_folder(folder_name, app_name):
 def get_module_path(module, *joins):
 	"""Get the path of the given module name."""
 	app = get_module_app(module)
-	return get_pymodule_path(app + "." + scrub(module), *joins)
+	scrubbed_module = scrub(module)
+	custom_module_import_map = get_custom_module_import_map(app)
+	module_path = custom_module_import_map.get(scrubbed_module, scrubbed_module)
+	return get_pymodule_path(app + "." + module_path, *joins)
 
 
 def get_app_path(app_name, *joins):
@@ -495,6 +500,30 @@ def get_pymodule_path(modulename, *joins):
 	return abspath(join(dirname(get_module(scrub(modulename)).__file__ or ""), *joins))
 
 
+def get_custom_modules(app_name):
+	"""Return custom modules discovered under `<app>/custom_modules/`."""
+	custom_modules_path = get_app_path(app_name, "custom_modules")
+	if not os.path.isdir(custom_modules_path):
+		return []
+
+	custom_modules = []
+	for folder_name in sorted(os.listdir(custom_modules_path)):
+		folder_path = os.path.join(custom_modules_path, folder_name)
+		if os.path.isdir(folder_path) and os.path.isfile(os.path.join(folder_path, "__init__.py")):
+			label = unscrub(folder_name)
+			import_suffix = f"custom_modules.{folder_name}"
+			custom_modules.append((label, import_suffix))
+
+	return custom_modules
+
+
+def get_custom_module_import_map(app_name):
+	"""Map scrubbed custom module labels to their import suffixes."""
+	return {scrub(label): import_suffix for label, import_suffix in get_custom_modules(app_name)}
+
+
 def get_module_list(app_name):
 	"""Get list of modules for given app via `app/modules.txt`."""
-	return get_file_items(get_app_path(app_name, "modules.txt"))
+	modules = get_file_items(get_app_path(app_name, "modules.txt"))
+	modules.extend(label for label, _import_suffix in get_custom_modules(app_name))
+	return modules
