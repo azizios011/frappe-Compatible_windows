@@ -100,6 +100,14 @@
    "link_to": "System",
    "link_type": "Sidebar",
    "title": "System"
+  },
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "settings-soft",
+   "link_to": "Axeane Settings",
+   "link_type": "Sidebar",
+   "title": "Axeane Settings"
   }
  ],
  "modified": "2026-10-08 18:41:15.000000",

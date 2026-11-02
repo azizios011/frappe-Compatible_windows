@@ -354,6 +354,7 @@ after_migrate = [
 	"frappe.search.sqlite_search.build_index_in_background",
 	"frappe.desk.doctype.notification_type.notification_type.install_notification_types",
 	"frappe.automation.doctype.automation_trigger_queue.automation_trigger_queue.ensure_dedup_indexes",
+	"frappe.custom_modules.axeane_settings.setup.after_migrate",
 ]
 
 otp_methods = ["OTP App", "Email", "SMS"]

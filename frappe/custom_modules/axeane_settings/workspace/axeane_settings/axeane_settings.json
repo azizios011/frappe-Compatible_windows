@@ -1,0 +1,42 @@
+{
+ "app": "frappe",
+ "charts": [],
+ "content": "[]",
+ "creation": "2026-11-02 00:00:00.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "setting",
+ "idx": 0,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "Axeane Settings",
+ "links": [],
+ "modified": "2026-11-02 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Axeane Settings",
+ "name": "Axeane Settings",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ],
+ "sequence_id": 51.0,
+ "shortcuts": [],
+ "sidebar_items": [
+  {"type": "Link", "label": "Home", "link_type": "DocType", "link_to": "AI Settings", "icon": "house", "child": 0, "indent": 0, "collapsible": 1, "keep_closed": 0},
+  {"type": "Section Break", "label": "AI", "icon": "file-text", "child": 0, "indent": 1, "collapsible": 1, "keep_closed": 0},
+  {"type": "Link", "label": "AI Settings", "link_type": "DocType", "link_to": "AI Settings", "child": 1, "indent": 0, "collapsible": 1, "keep_closed": 0},
+  {"type": "Section Break", "label": "Document Templates", "icon": "file", "child": 0, "indent": 1, "collapsible": 1, "keep_closed": 0},
+  {"type": "Link", "label": "Document Template Settings", "link_type": "DocType", "link_to": "Document Template Settings", "child": 1, "indent": 0, "collapsible": 1, "keep_closed": 0},
+  {"type": "Link", "label": "Document Template", "link_type": "DocType", "link_to": "Document Template", "child": 1, "indent": 0, "collapsible": 1, "keep_closed": 0}
+ ],
+ "title": "Axeane Settings"
+}
