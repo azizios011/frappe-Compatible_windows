@@ -1,0 +1,26 @@
+{
+ "actions": [],
+ "creation": "2026-11-02 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "issingle": 1,
+ "field_order": ["fix_enabled", "fix_max_attempts", "build_timeout_seconds"],
+ "fields": [
+  {"default": "1", "fieldname": "fix_enabled", "fieldtype": "Check", "label": "Enable LLM Fixer"},
+  {"default": "3", "fieldname": "fix_max_attempts", "fieldtype": "Int", "label": "LLM Fix Max Attempts", "description": "Maximum created_by_llm versions per template"},
+  {"default": "30", "fieldname": "build_timeout_seconds", "fieldtype": "Int", "label": "Build Timeout (seconds)", "description": "Subprocess timeout for template validation and rendering"}
+ ],
+ "links": [],
+ "modified": "2026-11-02 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Axeane Settings",
+ "name": "Document Template Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {"create": 1, "delete": 1, "email": 1, "print": 1, "read": 1, "role": "System Manager", "share": 1, "write": 1}
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

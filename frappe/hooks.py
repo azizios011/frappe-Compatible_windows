@@ -413,6 +413,7 @@ after_migrate = [
 	"frappe.flow.lib.agent.sync_tools",
 	"frappe.flow.lib.trigger.sync_triggers",
 	"frappe.flow.daemon.lifecycle.after_migrate",
+	"frappe.custom_modules.axeane_settings.setup.after_migrate",
 ]
 
 otp_methods = ["OTP App", "Email", "SMS"]
