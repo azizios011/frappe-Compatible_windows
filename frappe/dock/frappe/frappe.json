@@ -120,13 +120,13 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "settings-soft",
+   "icon": "axeane-settings-soft",
    "link_to": "Axeane Settings",
    "link_type": "Sidebar",
    "title": "Axeane Settings"
   }
  ],
- "modified": "2026-10-22 12:00:00.000000",
+ "modified": "2026-11-03 14:00:00.000000",
  "modified_by": "Administrator",
  "name": "frappe",
  "owner": "Administrator",
