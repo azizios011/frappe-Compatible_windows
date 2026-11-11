@@ -77,7 +77,10 @@ export function discoverPageIslands(benchRoot, apps) {
 function appPages(appPath) {
 	const pages = [];
 
-	for (const module of subdirectories(appPath)) {
+	// Modules usually sit one level below the app tree, but an app may nest
+	// them deeper (erpnext keeps its custom modules under
+	// `custom_modules/<name>`), so the walk descends until it meets `page/`.
+	for (const module of moduleDirectories(appPath)) {
 		const pageRoot = path.join(module, "page");
 		if (!isDirectory(pageRoot)) continue;
 
@@ -88,6 +91,24 @@ function appPages(appPath) {
 	}
 
 	return pages;
+}
+
+/** Candidate module folders: the app tree's directories, descended into when
+ * they hold no `page` folder of their own. A folder that is itself a module
+ * (has a `page` dir) stops the descent — a module nested inside another is
+ * not a thing, and this keeps the walk bounded. */
+function moduleDirectories(dir, depth = 0) {
+	if (depth > 4 || !isDirectory(dir)) return [];
+
+	const found = [];
+	for (const child of subdirectories(dir)) {
+		if (isDirectory(path.join(child, "page"))) {
+			found.push(child);
+		} else {
+			found.push(...moduleDirectories(child, depth + 1));
+		}
+	}
+	return found;
 }
 
 /**
