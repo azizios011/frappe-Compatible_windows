@@ -67,6 +67,14 @@
 			frappe._messages = {};
 			frappe.csrf_token = "{{ csrf_token }}";
 
+			// frappe-ui's frappeRequest reads window.csrf_token. Alias it to frappe.csrf_token
+			// so it also follows the token refresh in desk.js (frappe.broadcast "boot" handler).
+			Object.defineProperty(window, "csrf_token", {
+				configurable: true,
+				get: () => frappe.csrf_token,
+				set: (value) => { frappe.csrf_token = value; },
+			});
+
 			frappe._translations_loaded = fetch(
 				`/api/method/frappe.translate.get_boot_translations?v=${frappe.boot.translations_version}&lang=${frappe.boot.lang}`,
 				{
