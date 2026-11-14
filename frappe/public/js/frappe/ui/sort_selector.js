@@ -258,9 +258,22 @@ frappe.ui.SortSelector = class SortSelector {
 	}
 	get_sql_string() {
 		// build string like: `tabSales Invoice`.`subject`, `tabSales Invoice`.`name` desc
+		// meta.sort_field may carry several comma-separated fields ("categorie, ordre"):
+		// each one becomes its own table-qualified part, or the server's order-by
+		// validator rejects the half-quoted fragment at the comma.
 		const table_name = "`tab" + this.doctype + "`";
-		const sort_by = `${table_name}.\`${this.sort_by}\``;
-		if (!["name", "creation", "modified"].includes(this.sort_by)) {
+		const sort_fields = String(this.sort_by)
+			.split(",")
+			.map(function (f) {
+				return f.trim();
+			})
+			.filter(Boolean);
+		const sort_by = sort_fields
+			.map(function (f) {
+				return table_name + ".`" + f + "`";
+			})
+			.join(", ");
+		if (!sort_fields.every((f) => ["name", "creation", "modified"].includes(f))) {
 			// add name column for deterministic ordering
 			return `${sort_by} ${this.sort_order}, ${table_name}.\`name\` ${this.sort_order}`;
 		} else {
