@@ -20,6 +20,7 @@ from frappe.desk.reportview import (
 from frappe.model.create_new import get_static_default_value
 from frappe.model.document import Document
 from frappe.modules import make_boilerplate
+from frappe.modules.utils import get_custom_module_import_map
 from frappe.modules.export_file import export_to_files
 from frappe.utils import cast, cint, cstr, get_datetime, get_timedelta, now, nowtime, sbool
 from frappe.utils.safe_exec import check_safe_sql_query, safe_exec
@@ -758,10 +759,16 @@ def is_prepared_report_enabled(report):
 
 
 def get_report_module_dotted_path(module, report_name):
+	app = frappe.local.module_app[scrub(module)]
+	scrubbed_module = scrub(module)
+	# custom modules live under <app>/custom_modules/<folder>: resolve them
+	# through the same map get_module_path uses, or every Script Report in
+	# custom_modules builds a non-existent dotted path
+	module_path = get_custom_module_import_map(app).get(scrubbed_module, scrubbed_module)
 	return (
-		frappe.local.module_app[scrub(module)]
+		app
 		+ "."
-		+ scrub(module)
+		+ module_path
 		+ ".report."
 		+ scrub(report_name)
 		+ "."
