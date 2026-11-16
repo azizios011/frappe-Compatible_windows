@@ -1282,7 +1282,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	update_masked_fields_in_columns(columns) {
-		const masked_fields = frappe.get_meta(this.report_doc?.ref_doctype).masked_fields;
+		// the ref doctype's meta is not always in locals on the report page
+		// (nothing loads it before the first render): fall back to no masking
+		const masked_fields = frappe.get_meta(this.report_doc?.ref_doctype)?.masked_fields || [];
 
 		return columns.map((col) => {
 			if (masked_fields.includes(col.fieldname)) {
