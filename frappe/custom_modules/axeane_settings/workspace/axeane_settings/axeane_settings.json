@@ -1,7 +1,7 @@
 {
  "app": "frappe",
  "charts": [],
- "content": "[{\"id\":\"axeaneS1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"AI Settings\",\"col\":4}},{\"id\":\"axeaneS2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Document Workspace\",\"col\":4}},{\"id\":\"axeaneS3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Document Template\",\"col\":4}}]",
+ "content": "[{\"id\":\"axeaneS1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"AI Settings\",\"col\":4}},{\"id\":\"axeaneS2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Document Workspace\",\"col\":4}},{\"id\":\"axeaneS3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Document Template\",\"col\":4}},{\"id\":\"axeaneS4\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Template Prompt\",\"col\":4}}]",
  "creation": "2026-11-02 00:00:00.000000",
  "custom_blocks": [],
  "docstatus": 0,
@@ -14,7 +14,7 @@
  "is_hidden": 0,
  "label": "Axeane Settings",
  "links": [],
- "modified": "2026-11-03 14:01:00.000000",
+ "modified": "2026-11-22 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Axeane Settings",
  "name": "Axeane Settings",
@@ -49,12 +49,20 @@
    "label": "Document Template",
    "link_to": "Document Template",
    "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Template Prompt",
+   "link_to": "Template Prompt",
+   "type": "DocType"
   }
  ],
  "sidebar_items": [
   {"type": "Link", "label": "Home", "link_type": "Workspace", "link_to": "Axeane Settings", "icon": "house", "child": 0, "indent": 0, "collapsible": 1, "keep_closed": 0},
   {"type": "Section Break", "label": "AI", "icon": "sparkles", "child": 0, "indent": 1, "collapsible": 1, "keep_closed": 0},
   {"type": "Link", "label": "AI Settings", "link_type": "DocType", "link_to": "AI Settings", "child": 1, "indent": 0, "collapsible": 1, "keep_closed": 0},
+  {"type": "Link", "label": "Template Prompt", "link_type": "DocType", "link_to": "Template Prompt", "child": 1, "indent": 0, "collapsible": 1, "keep_closed": 0},
   {"type": "Section Break", "label": "Documents", "icon": "file", "child": 0, "indent": 1, "collapsible": 1, "keep_closed": 0},
   {"type": "Link", "label": "Document Workspace", "link_type": "Page", "link_to": "onlyoffice-workspace", "child": 1, "indent": 0, "collapsible": 1, "keep_closed": 0},
   {"type": "Link", "label": "Document Template", "link_type": "DocType", "link_to": "Document Template", "child": 1, "indent": 0, "collapsible": 1, "keep_closed": 0},

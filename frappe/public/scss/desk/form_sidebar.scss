@@ -819,3 +819,20 @@ body[data-route^="Form"] .attachment-preview {
 body:has(.overlay-sidebar.opened) .es-menu {
 	z-index: 1301;
 }
+
+// doctypes opted into visible-on-new sidebars: the rows that need a saved
+// record are dimmed, inert and carry a "Save first" hint
+.form-sidebar {
+	.new-doc-disabled {
+		opacity: 0.5;
+		pointer-events: none;
+		position: relative;
+
+		.save-first-hint {
+			display: block;
+			@include get_textstyle("sm", "regular");
+			font-style: italic;
+			padding-top: var(--margin-xs);
+		}
+	}
+}

@@ -51,23 +51,59 @@ frappe.ui.form.Sidebar = class {
 	}
 
 	refresh() {
-		if (this.frm.doc.__islocal) {
+		if (this.frm.doc.__islocal && !this.visible_on_new()) {
 			this.sidebar.toggle(false);
 			this.page.sidebar.addClass("hide-sidebar");
 		} else {
 			this.page.sidebar.removeClass("hide-sidebar");
 			this.sidebar.toggle(true);
-			this.frm.assign_to.refresh();
-			this.frm.attachments.refresh();
-			this.frm.shared.refresh();
+			if (this.frm.doc.__islocal) {
+				// opted-in doctypes keep the sidebar on a new doc: the rows
+				// that need a saved record are shown disabled with a hint,
+				// the title row works immediately
+				this.mark_new_doc_sections();
+			} else {
+				this.clear_new_doc_sections();
+				this.frm.assign_to.refresh();
+				this.frm.attachments.refresh();
+				this.frm.shared.refresh();
 
-			this.frm.tags && this.frm.tags.refresh(this.frm.get_docinfo()?.tags);
+				this.frm.tags && this.frm.tags.refresh(this.frm.get_docinfo()?.tags);
 
-			this.refresh_web_view_count();
-			this.refresh_creation_modified();
-			frappe.ui.form.set_user_image(this.frm);
+				this.refresh_web_view_count();
+				this.refresh_creation_modified();
+				frappe.ui.form.set_user_image(this.frm);
+			}
 		}
 		this.refresh_like();
+	}
+
+	visible_on_new() {
+		// generic opt-in: an app registers frappe.form_sidebar.visible_on_new
+		// (function taking the frm) to keep the form sidebar visible while
+		// the doc is new; every other doctype keeps the default behavior
+		const hook = frappe.form_sidebar && frappe.form_sidebar.visible_on_new;
+		return !!(typeof hook === "function" && hook(this.frm));
+	}
+
+	mark_new_doc_sections() {
+		const sections = this.sidebar.find(
+			".form-assignments, .form-attachments, .form-tags, .form-shared"
+		);
+		sections.addClass("new-doc-disabled");
+		if (!sections.find(".save-first-hint").length) {
+			sections.append(
+				`<span class="save-first-hint text-muted">${__("Save first")}</span>`
+			);
+		}
+	}
+
+	clear_new_doc_sections() {
+		this.sidebar
+			.find(".new-doc-disabled")
+			.removeClass("new-doc-disabled")
+			.find(".save-first-hint")
+			.remove();
 	}
 
 	setup_copy_event() {
