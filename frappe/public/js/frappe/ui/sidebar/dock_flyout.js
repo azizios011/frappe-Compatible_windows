@@ -115,14 +115,40 @@ frappe.ui.DockFlyout = class DockFlyout {
 		}
 
 		this.cancel_close();
-		if (this.$flyout) this.$flyout.remove();
+		if (this.$flyout) {
+			this.hide_popover(this.$flyout[0]);
+			this.$flyout.remove();
+		}
 		this.$tile = $tile;
 		this.entry = entry;
 		this.$flyout = $flyout.attr("aria-expanded", "true");
 		$tile.attr("aria-expanded", "true");
 		$flyout.appendTo("body");
+		// Into the browser's top layer, so no z-index of anything else — sticky page heads,
+		// form sidebars, modals, datepickers — can ever paint over the card. `manual` keeps
+		// light-dismiss off (the flyout owns its own closing) and takes no focus. The element
+		// only becomes visible here: a closed popover is display:none, so show before measure.
+		this.show_popover($flyout[0]);
 		this.position($tile);
 		this.bind_flyout_events($flyout);
+	}
+
+	// The Popover API moves the card to the browser's top layer; both calls are guarded, since
+	// the fallback is the plain fixed-position card with its fallback z-index.
+	show_popover(el) {
+		try {
+			if (typeof el.showPopover === "function") el.showPopover();
+		} catch (error) {
+			// Already showing (or the API refusing): the card is visible either way.
+		}
+	}
+
+	hide_popover(el) {
+		try {
+			if (el && typeof el.hidePopover === "function") el.hidePopover();
+		} catch (error) {
+			// Already hidden.
+		}
 	}
 
 	// The card's rows: the workspace's sidebar elements grouped and filtered the way the sidebar
@@ -154,7 +180,9 @@ frappe.ui.DockFlyout = class DockFlyout {
 			const active = this.is_active_row(path);
 			return `<button type="button" class="dock-flyout-row${child ? " dock-flyout-row--child" : ""}${
 				active ? " active" : ""
-			}" role="menuitem" data-path="${esc(path)}" tabindex="-1"
+			}" role="menuitem" data-path="${esc(path)}" tabindex="-1" title="${esc(
+				item.label || item.link_to || ""
+			)}"
 				${active ? 'aria-current="page"' : ""}>
 				<span class="dock-flyout-row-icon">${icon}</span>
 				<span class="dock-flyout-row-label">${esc(item.label || item.link_to || "")}</span>
@@ -179,7 +207,10 @@ frappe.ui.DockFlyout = class DockFlyout {
 		});
 
 		if (!body) return null;
-		return $(`<div class="dock-flyout" role="menu" aria-label="${esc(label)}">
+		// `popover="manual"` puts the card in the browser's top layer when it is shown, above
+		// every z-index the desk can muster; manual keeps light-dismiss off (the flyout owns its
+		// own closing) and never takes focus.
+		return $(`<div class="dock-flyout" popover="manual" role="menu" aria-label="${esc(label)}">
 			<div class="dock-flyout-header">${esc(label)}</div>
 			<div class="dock-flyout-body">${body}</div>
 		</div>`);
@@ -198,8 +229,12 @@ frappe.ui.DockFlyout = class DockFlyout {
 	// To the right of the tile (the left one in RTL), vertically aligned to it, clamped to the
 	// viewport; the card scrolls inside when it is taller than the window.
 	position($tile) {
-		const rect = $tile[0].getBoundingClientRect();
 		const el = this.$flyout[0];
+		// Pinned to the origin BEFORE measuring: with `width: max-content` a card left at its
+		// static position can be squeezed by the viewport edge and measure narrow.
+		el.style.left = "0px";
+		el.style.top = "0px";
+		const rect = $tile[0].getBoundingClientRect();
 		const width = el.offsetWidth;
 		const height = el.offsetHeight;
 		const rtl = frappe.utils.is_rtl();
@@ -294,6 +329,13 @@ frappe.ui.DockFlyout = class DockFlyout {
 		}
 		if (!this.$flyout) return;
 		const $tile = this.$tile;
+		const el = this.$flyout[0];
+		try {
+			// Out of the top layer before the node goes away.
+			if (typeof el.hidePopover === "function") el.hidePopover();
+		} catch (error) {
+			// Already hidden.
+		}
 		this.$flyout.remove();
 		this.$flyout = null;
 		this.$tile = null;
