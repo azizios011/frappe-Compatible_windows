@@ -1,5 +1,6 @@
 import "./sidebar_item";
 import "./dock";
+import "./dock_flyout";
 
 // A module's icon. The dock row wins over the Sidebar's `header_icon`, so the header matches the tile.
 frappe.get_module_icon = function (module) {

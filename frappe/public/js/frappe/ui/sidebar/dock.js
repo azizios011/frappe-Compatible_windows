@@ -17,6 +17,9 @@ frappe.ui.Dock = class Dock {
 		this.tooltips = [];
 		this.utility_tooltips = [];
 		this.make();
+		// The flyout owns the hover cards beside the tiles; it exists before the first tile is
+		// rendered (refresh is external) and reads nothing here.
+		this.flyout = new frappe.ui.DockFlyout(this);
 	}
 
 	make() {
@@ -78,6 +81,7 @@ frappe.ui.Dock = class Dock {
 	// `end_editing`. Returns the node it draws in.
 	begin_editing(editor) {
 		this.editor = editor;
+		this.flyout?.close(); // arranging the rail is no moment for a flyout
 		this.sortable?.option("disabled", true);
 		this.tooltips.forEach((tip) => tip.destroy());
 		this.tooltips = [];
@@ -249,7 +253,9 @@ frappe.ui.Dock = class Dock {
 				if (!this.is_open && dist_from_edge > frappe.ui.Dock.REVEAL_EDGE) return;
 
 				const open = this.should_open({
-					over_dock: !!$(e.target).closest(".dock").length,
+					// The flyout is the rail's own surface: the pointer over it holds the dock
+					// just as the pointer over a tile does.
+					over_dock: !!$(e.target).closest(".dock, .dock-flyout").length,
 					holds_focus: this.holds_focus(),
 					dist_from_edge,
 					currently_open: this.is_open,
@@ -271,6 +277,8 @@ frappe.ui.Dock = class Dock {
 
 		this.$dock.off("focusout.dock-reveal").on("focusout.dock-reveal", (e) => {
 			if (!this.is_open || this.$dock[0].contains(e.relatedTarget)) return;
+			// Focus walking into the flyout's rows is still inside the rail's keyboard.
+			if (this.flyout?.$flyout?.[0]?.contains(e.relatedTarget)) return;
 			this.opener = null;
 			this.close();
 		});
@@ -298,7 +306,13 @@ frappe.ui.Dock = class Dock {
 	}
 
 	holds_focus() {
-		return this.$dock[0].contains(document.activeElement);
+		// The flyout's rows live outside the dock node (the card is a body child), but the
+		// keyboard through them is still the dock's: Down from a tile lands there.
+		const flyout = this.flyout?.$flyout?.[0];
+		return (
+			this.$dock[0].contains(document.activeElement) ||
+			!!(flyout && flyout.contains(document.activeElement))
+		);
 	}
 
 	should_open({ over_dock, holds_focus, dist_from_edge, currently_open }) {
@@ -445,7 +459,12 @@ frappe.ui.Dock = class Dock {
 			<span class="dock-item-label">${frappe.utils.escape_html(label)}</span>
 		</button>`);
 
-		this.name_tile($item, label);
+		// A tile whose workspace carries sidebar items flies them out beside the rail instead of
+		// carrying the plain name tooltip — the flyout header names the workspace. URL entries
+		// (no module) and utilities keep the tooltip.
+		if (!this.flyout.attach($item, entry)) {
+			this.name_tile($item, label);
+		}
 
 		$item.on("click", () => {
 			if (this.dragged) return;

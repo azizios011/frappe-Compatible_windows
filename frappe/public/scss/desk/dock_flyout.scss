@@ -1,0 +1,108 @@
+// The dock flyout's card: the sidebar elements of the workspace whose tile the pointer rests on,
+// beside the rail. The behaviors live in dock_flyout.js; what is here is the look — the dock's
+// own tokens, so dark mode rides the same variables.
+
+.dock-flyout {
+	// Above the dock (1030) and the body sidebar; below the modal layers.
+	z-index: 1040;
+	position: fixed;
+
+	min-width: 220px;
+	max-width: 320px;
+	// The inline cap (measured) keeps the card inside the window; this floor holds the
+	// scroll-before-measure paint honest.
+	max-height: calc(100vh - 16px);
+	overflow-y: auto;
+
+	background: var(--surface-white);
+	border: 1px solid var(--outline-gray-2, #e2e2e2);
+	border-radius: var(--radius-4);
+	box-shadow: var(--shadow-md);
+
+	padding: calc(var(--spacing) * 1) 0;
+	// The card is placed by dock_flyout.js off the tile's own rect: a tile is --dock-tile wide
+	// inside the --dock-width rail, so anchoring on the tile's edge already clears the rail; the
+	// JS adds one gap on top.
+
+	.dock-flyout-header {
+		padding: calc(var(--spacing) * 1) calc(var(--spacing) * 3);
+		margin-bottom: calc(var(--spacing) * 1);
+		font-size: var(--text-xs);
+		font-weight: 600;
+		color: var(--ink-gray-5);
+		text-transform: uppercase;
+		letter-spacing: 0.02em;
+		border-bottom: 1px solid var(--outline-gray-2, #e2e2e2);
+	}
+
+	.dock-flyout-group-label {
+		padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3) calc(var(--spacing) * 1);
+		font-size: var(--text-xs);
+		font-weight: 600;
+		color: var(--ink-gray-4);
+		text-transform: uppercase;
+		letter-spacing: 0.02em;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.dock-flyout-row {
+		display: flex;
+		align-items: center;
+		gap: calc(var(--spacing) * 2);
+		width: 100%;
+		padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 3);
+		border: none;
+		background: none;
+		text-align: left;
+		cursor: pointer;
+		color: var(--ink-gray-7);
+		font-size: var(--text-sm);
+		line-height: 1.4;
+
+		.dock-flyout-row-icon {
+			display: inline-flex;
+			flex-shrink: 0;
+			color: var(--ink-gray-5);
+		}
+
+		.dock-flyout-row-label {
+			min-width: 0;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+
+		&:hover,
+		&:focus {
+			background: var(--surface-gray-2);
+			color: var(--ink-gray-8);
+			outline: none;
+		}
+
+		&:focus {
+			box-shadow: none;
+		}
+
+		&.active {
+			color: var(--ink-gray-9);
+			font-weight: 500;
+			background: var(--surface-gray-3);
+
+			.dock-flyout-row-icon {
+				color: var(--ink-gray-8);
+			}
+		}
+
+		// Rows nested under an indented section draw no icon and a step of indent, the way the
+		// sidebar renders them.
+		&.dock-flyout-row--child {
+			padding-left: calc(var(--spacing) * 6);
+
+			.dock-flyout-row-icon {
+				display: none;
+			}
+		}
+	}
+}
