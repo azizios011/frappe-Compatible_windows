@@ -1,8 +1,8 @@
 // The dock flyout: hovering a workspace tile in the dock rail shows that workspace's sidebar
 // elements in a small card beside the rail, so the reader can jump straight to any item without
-// opening the workspace first. It works with the sidebar closed (the main case) and open; when
-// the flyout would just duplicate the panel already beside the rail — the tile's own workspace,
-// sidebar expanded — it stays shut.
+// opening the workspace first. It works only with the sidebar collapsed; while the sidebar is
+// expanded, the flyout stays shut for every workspace tile so it never overlaps the sidebar's
+// own items.
 //
 // frappe.ui.DockFlyout is owned by the Dock: one instance, one flyout at a time. The data is the
 // same payload the real sidebar renders, `frappe.boot.module_sidebars[entry.module].items`, which
@@ -28,6 +28,7 @@ frappe.ui.DockFlyout = class DockFlyout {
 		this.open_timer = null;
 		this.close_timer = null;
 		this.bind_once();
+		this.hook_sidebar();
 	}
 
 	// A touch device or a phone cannot hover: no flyouts, tiles keep their tooltips.
@@ -79,6 +80,9 @@ frappe.ui.DockFlyout = class DockFlyout {
 		if (this.dock.dragged || this.dock.editor || document.body.classList.contains("dock-editing")) {
 			return; // dragging a tile is a way into arranging, never a way into a flyout
 		}
+		if (this.dock.sidebar?.sidebar_expanded) {
+			return;
+		}
 		// Instant when another flyout is already open: moving along the rail flips the card.
 		this.request_open_impl($tile, entry, this.is_open() ? 0 : (delay ?? frappe.ui.DockFlyout.OPEN_DELAY));
 	}
@@ -101,9 +105,9 @@ frappe.ui.DockFlyout = class DockFlyout {
 		if (this.dock.dragged || this.dock.editor || document.body.classList.contains("dock-editing")) {
 			return;
 		}
-		// The flyout would only duplicate the panel: the same workspace, its sidebar expanded.
+		// The flyout never opens while the sidebar is expanded; it would overlap the sidebar's own items.
 		const sidebar = this.dock.sidebar;
-		if (entry.module === sidebar.current_module && sidebar.sidebar_expanded) {
+		if (sidebar?.sidebar_expanded) {
 			this.close();
 			return;
 		}
@@ -356,10 +360,29 @@ frappe.ui.DockFlyout = class DockFlyout {
 					e.stopPropagation();
 					this.close();
 				}
+			})
+			.off("sidebar-expand.dock-flyout")
+			.on("sidebar-expand.dock-flyout", (e, data) => {
+				if (data?.sidebar_expand || this.dock.sidebar?.sidebar_expanded) {
+					this.close();
+				}
 			});
 		$(window)
 			.off("scroll.dock-flyout resize.dock-flyout")
 			.on("scroll.dock-flyout resize.dock-flyout", () => this.close());
 		frappe.router.on("change", () => this.close());
+	}
+
+	hook_sidebar() {
+		const sidebar = this.dock.sidebar;
+		if (!sidebar || sidebar._dock_flyout_hooked) return;
+		sidebar._dock_flyout_hooked = true;
+		if (typeof sidebar.open === "function") {
+			const orig_open = sidebar.open.bind(sidebar);
+			sidebar.open = (...args) => {
+				this.close();
+				return orig_open(...args);
+			};
+		}
 	}
 };
