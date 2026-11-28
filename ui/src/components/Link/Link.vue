@@ -14,7 +14,7 @@
 		:placeholder="placeholder ?? `Search ${doctype.toLowerCase()}`"
 		:loading="options.loading && !options.data"
 		@update:query="handleInputChange"
-		@focus="() => loadOptions('')"
+		@update:selectedOption="rememberSelectedOption"
 	>
 		<template v-for="(_, name) in forwardedSlots" #[name]="slotProps" :key="name">
 			<slot :name="name" v-bind="slotProps" />
@@ -76,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-import { toIdOption, toLinkOption } from "./linkOption";
+import { isTypedSearch, toIdOption, toLinkOption } from "./linkOption";
 import { computed, ref, useSlots, watch } from "vue";
 import { Combobox, createResource, frappeRequest, debounce } from "frappe-ui";
 import type { ComboboxOption, ComboboxCustomOption } from "frappe-ui";
@@ -126,16 +126,65 @@ const createNewOption: ComboboxCustomOption = {
 	onClick: ({ query }: { query: string }) => emit("create", query),
 };
 
+// The committed option, remembered so its label stays displayed across
+// reloads: in input mode the input displays the selected option's LABEL, and
+// a list that no longer carries the value would blank the field.
+const selectedOption = ref<ComboboxOption | null>(null);
+
+// The Combobox hands the full option over on every commit, and null on clear
+// (custom "Create New" rows never commit through this event).
+function rememberSelectedOption(option: ComboboxOption | ComboboxCustomOption | null) {
+	if (option && "value" in option && option.value != null) {
+		selectedOption.value = {
+			label: String(option.label ?? option.value),
+			value: option.value,
+		};
+	} else {
+		selectedOption.value = null;
+	}
+}
+
+// A value set from outside (v-model) adopts the label from the loaded list
+// when it has one; the `title` prop covers the rest inside linkOptions.
+watch(model, (value) => {
+	if (value == null || value === "") {
+		selectedOption.value = null;
+		return;
+	}
+	if (selectedOption.value?.value === value) return;
+	const match = (options.data || []).find((option: any) => option.value === value);
+	selectedOption.value = match ? { label: match.label, value: value } : null;
+});
+
 const linkOptions = computed<ComboboxOption[]>(() => {
 	let _options: ComboboxOption[] = options.data || [];
 	const known = model.value && _options.some((option: any) => option.value === model.value);
-	if (props.title && model.value && !known) {
-		_options = [{ label: props.title, value: model.value }, ..._options];
+	if (model.value && !known) {
+		// the selected option always stays listed so its label keeps showing:
+		// prefer the remembered option, then the `title` prop, then the raw value
+		const remembered =
+			selectedOption.value && selectedOption.value.value === model.value
+				? selectedOption.value
+				: null;
+		_options = [
+			{
+				label: remembered?.label ?? props.title ?? String(model.value),
+				value: model.value,
+			},
+			..._options,
+		];
 	}
 	if (props.creatable) {
 		return [..._options, createNewOption];
 	}
 	return _options;
+});
+
+// The label the Combobox displays for the current value — exactly what its
+// display sync echoes back into update:query on select and on close.
+const selectedLabel = computed<string | null>(() => {
+	if (!model.value) return null;
+	return linkOptions.value.find((option: any) => option.value === model.value)?.label ?? null;
 });
 
 const showClear = computed(() => !props.disabled && !!model.value);
@@ -154,9 +203,20 @@ const loadOptions = (txt: string = "") => {
 	options.reload();
 };
 
-const handleInputChange = debounce((value: string) => {
-	loadOptions(value || "");
+const handleInputChange = debounce((value: unknown) => {
+	// input mode echoes the committed label (on select and again on close),
+	// "" on a display reset and a re-emitted focus event — none of those is a
+	// search term; only real typing searches, and the full list reloads on
+	// every open below
+	if (!isTypedSearch(value, { open: open.value, selectedLabel: selectedLabel.value })) return;
+	loadOptions(value);
 }, 300);
+
+// Input mode: nothing is typed at open (the input shows the committed
+// label), so the full list reloads here — never on the select/close echoes.
+watch(open, (isOpen) => {
+	if (isOpen) loadOptions("");
+});
 
 const clearValue = () => {
 	model.value = null;
